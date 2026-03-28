@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Polity Phase Map</title>
   <link rel="stylesheet" href="polity-phase-map.css">
+  <script src="https://unpkg.com/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -17,7 +18,7 @@
   <!--<div id="legend"></div>-->
 
   <div id="map-wrap">
-    <svg id="map" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="cy"></div>
   </div>
 
   <div id="edge-legend">
@@ -64,6 +65,19 @@
   </div>
 
 </div>
+
+<!-- Axis info modal -->
+<div id="axis-modal" role="dialog" aria-modal="true" aria-labelledby="axis-modal-title">
+  <div id="axis-modal-backdrop"></div>
+  <div id="axis-modal-box">
+    <div id="axis-modal-header">
+      <span id="axis-modal-title"></span>
+      <button id="axis-modal-close" aria-label="Close">&#x2715;</button>
+    </div>
+    <div id="axis-modal-body"></div>
+  </div>
+</div>
+
 <div id="edge-tooltip"></div>
 <script src="polity-phase-map.js"></script>
 </body>

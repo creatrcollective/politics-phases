@@ -102,7 +102,7 @@ header p {
   box-sizing: border-box;
 }
 
-/* ── SVG map ── */
+/* ── Graph map ── */
 #map-wrap {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -111,41 +111,11 @@ header p {
   margin-bottom: 16px;
 }
 
-#map {
-  display: block;
+#cy {
   width: 100%;
-  height: auto;
-}
-
-/* SVG node styles */
-.node-rect {
-  cursor: pointer;
-  transition: filter 0.15s, opacity 0.2s;
-}
-
-.node-rect:hover {
-  filter: brightness(0.92);
-}
-
-.node-group {
-  transition: opacity 0.2s;
-}
-
-.node-group.dimmed {
-  opacity: 0.35;
-}
-
-.node-group.active .node-rect {
-  /* ring added via JS stroke-width */
-}
-
-.node-label {
-  pointer-events: none;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  text-anchor: middle;
-  dominant-baseline: middle;
+  aspect-ratio: 680 / 650;
+  min-height: 420px;
+  display: block;
 }
 
 /* ── Detail panel ── */
@@ -438,3 +408,112 @@ header p {
 .edge-line.normal   { background: var(--text-muted); }
 .edge-line.rare     { background-image: repeating-linear-gradient(90deg, var(--edge-rare) 0 5px, transparent 5px 8px); }
 .edge-line.dangerous{ background: #A32D2D; }
+
+/* ── Axis info button ── */
+.axis-info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  padding: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: var(--font);
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.axis-info-btn:hover {
+  opacity: 1;
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* ── Axis info modal ── */
+#axis-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+#axis-modal.visible {
+  display: flex;
+}
+
+#axis-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#axis-modal-box {
+  position: relative;
+  z-index: 1;
+  width: min(520px, calc(100vw - 32px));
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+#axis-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+#axis-modal-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+#axis-modal-close {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+
+#axis-modal-close:hover {
+  color: var(--text);
+}
+
+#axis-modal-body {
+  padding: 16px 18px 20px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#axis-modal-body p {
+  margin: 0;
+}
+
+#axis-modal-body strong {
+  font-weight: 600;
+}

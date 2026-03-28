@@ -245,7 +245,7 @@ const PHASES = {
     label: "Crisis / Collapse",
     color: "red",
     desc: "State functions have broken down. Legitimacy and capacity are near zero. Multiple armed actors contest territory. The polity as a unit may cease to exist or exist only nominally.",
-    axes: { legitimacy: 0, capacity: 0, distribution: 0 },
+    axes: { legitimacy: 1, capacity: 1, distribution: 2 },
     markers: [
       "Multiple armed factions contesting core territories",
       "Currency collapse or fiscal paralysis",
@@ -296,7 +296,7 @@ const PHASES = {
     label: "Terminal Decay",
     color: "red",
     desc: "The polity has lost both legitimacy and capacity but has not yet formally collapsed. The state persists nominally while actual governance is performed by informal actors — criminal networks, local strongmen, foreign powers.",
-    axes: { legitimacy: 0, capacity: 0, distribution: 0 },
+    axes: { legitimacy: 1, capacity: 2, distribution: 2 },
     markers: [
       "Formal institutions persist as facades only",
       "Actual power exercised by informal or criminal networks",
@@ -356,33 +356,28 @@ const EDGES = [
   { from: "repression",    to: "mature",        type: "rare",      label: "managed opening" },
 
   // Crisis / Succession / Decay
-  { from: "crisis",        to: "formation",     type: "rare",      label: "reconstitution" },
+  { from: "crisis",        to: "formation",     type: "normal",    label: "reconstitution" },
   { from: "succession",    to: "mature",        type: "normal" },
   { from: "succession",    to: "formation",     type: "rare",      label: "next cycle" },
-  { from: "decay",         to: "formation",     type: "rare",      label: "external reset" },
+  { from: "decay",         to: "formation",     type: "normal",    label: "external reset" },
 ];
 
 // ── Node layout ───────────────────────────────────────────────────────────────
+// x = center x, y = top edge (converted to center when building Cytoscape elements)
 
 const NW = 158, NH = 52, NRX = 8;
 const COL = { left: 139, center: 340, right: 541 };
 
 const NODE_POS = {
-  // Row 0
   formation:    { x: COL.center, y: 40  },
-  // Row 0.5 — settlement question + fragmentation
   settlement:   { x: COL.center, y: 118 },
   fragmentation:{ x: COL.right,  y: 118 },
-  // Row 1 — consolidation alone
   consolidation:{ x: COL.center, y: 220 },
-  // Row 2 — consolidation exits
   mature:       { x: COL.left,   y: 330 },
   autocratic:   { x: COL.right,  y: 330 },
-  // Row 3
   strain:       { x: COL.left,   y: 440 },
   reform:       { x: COL.center, y: 440 },
   repression:   { x: COL.right,  y: 440 },
-  // Row 4
   crisis:       { x: COL.left,   y: 550 },
   succession:   { x: COL.center, y: 550 },
   decay:        { x: COL.right,  y: 550 },
@@ -397,7 +392,6 @@ const COLOR_MAP = {
   amber:    { fill: "--amber-fill",  stroke: "--amber-stroke",  text: "--amber-text"  },
   green:    { fill: "--green-fill",  stroke: "--green-stroke",  text: "--green-text"  },
   red:      { fill: "--red-fill",    stroke: "--red-stroke",    text: "--red-text"    },
-  // Decision/question nodes use neutral surface colors
   decision: { fill: "--bg-secondary", stroke: "--text-muted",  text: "--text"        },
 };
 
@@ -410,209 +404,176 @@ function nodeColors(colorKey) {
   return { fill: cssVar(m.fill), stroke: cssVar(m.stroke), text: cssVar(m.text) };
 }
 
-// ── SVG builder ───────────────────────────────────────────────────────────────
+// ── Cytoscape setup ───────────────────────────────────────────────────────────
 
-const SVG_NS = "http://www.w3.org/2000/svg";
+let cy = null;
 
-function svgEl(tag, attrs = {}) {
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  return el;
-}
+function buildElements() {
+  const els = [];
 
-function buildSVG() {
-  const svg = document.getElementById("map");
-  const svgW = 680, svgH = 650;
-  svg.setAttribute("viewBox", `0 0 ${svgW} ${svgH}`);
-
-  // Arrowhead markers
-  const defs = svgEl("defs");
-
-  const mkNormal = svgEl("marker", {
-    id: "arrowhead", markerWidth: "8", markerHeight: "8",
-    refX: "7", refY: "3", orient: "auto"
-  });
-  mkNormal.appendChild(svgEl("path", { d: "M0,0 L0,6 L8,3 z", fill: cssVar("--text-muted") }));
-  defs.appendChild(mkNormal);
-
-  const mkDanger = svgEl("marker", {
-    id: "arrowhead-danger", markerWidth: "8", markerHeight: "8",
-    refX: "7", refY: "3", orient: "auto"
-  });
-  mkDanger.appendChild(svgEl("path", { d: "M0,0 L0,6 L8,3 z", fill: "#A32D2D" }));
-  defs.appendChild(mkDanger);
-
-  const mkRare = svgEl("marker", {
-    id: "arrowhead-rare", markerWidth: "8", markerHeight: "8",
-    refX: "7", refY: "3", orient: "auto"
-  });
-  mkRare.appendChild(svgEl("path", { d: "M0,0 L0,6 L8,3 z", fill: cssVar("--edge-rare") }));
-  defs.appendChild(mkRare);
-
-  svg.appendChild(defs);
-
-  const edgeLayer = svgEl("g", { id: "edges" });
-  svg.appendChild(edgeLayer);
-  const nodeLayer = svgEl("g", { id: "nodes" });
-  svg.appendChild(nodeLayer);
-
-  // Annotate edges with same-direction indices (for parallel edge offset)
-  const dirCount = {}, dirIdx = {};
-  for (const e of EDGES) {
-    const k = `${e.from}→${e.to}`;
-    dirCount[k] = (dirCount[k] || 0) + 1;
+  for (const phase of Object.values(PHASES)) {
+    const colors = nodeColors(phase.color);
+    const pos = NODE_POS[phase.id];
+    els.push({
+      group: "nodes",
+      data: {
+        id: phase.id,
+        label: phase.label,
+        fill: colors.fill,
+        stroke: colors.stroke,
+        textColor: colors.text,
+      },
+      position: { x: pos.x, y: pos.y + NH / 2 },
+      locked: true,
+      classes: phase.color,
+    });
   }
-  const annotated = EDGES.map(e => {
-    const k = `${e.from}→${e.to}`;
+
+  const dirIdx = {};
+  for (const edge of EDGES) {
+    const k = `${edge.from}→${edge.to}`;
     const idx = dirIdx[k] || 0;
     dirIdx[k] = idx + 1;
-    return { ...e, sameIdx: idx, sameCount: dirCount[k] };
-  });
-
-  for (const edge of annotated) drawEdge(edgeLayer, edge);
-  for (const phase of Object.values(PHASES)) drawNode(nodeLayer, phase);
-}
-
-function nodeEdgePoint(id, towardId) {
-  const p = NODE_POS[id];
-  const t = NODE_POS[towardId];
-  const cx = p.x, cy = p.y + NH / 2;
-  const tcx = t.x, tcy = t.y + NH / 2;
-  const dx = tcx - cx, dy = tcy - cy;
-  const hw = NW / 2 + 2, hh = NH / 2 + 2;
-  if (Math.abs(dx) * hh > Math.abs(dy) * hw) {
-    const t2 = hw / Math.abs(dx);
-    return { x: cx + Math.sign(dx) * hw, y: cy + dy * t2 };
-  } else {
-    const t2 = hh / Math.abs(dy);
-    return { x: cx + dx * t2, y: cy + Math.sign(dy) * hh };
-  }
-}
-
-function drawEdge(layer, edge) {
-  const isDanger = edge.type === "dangerous";
-  const isRare   = edge.type === "rare";
-
-  const strokeColor = isDanger ? "#A32D2D"
-                    : isRare   ? cssVar("--edge-rare")
-                               : cssVar("--text-muted");
-  const strokeW     = isRare ? "0.8" : "1";
-  const arrowMark   = isDanger ? "url(#arrowhead-danger)"
-                    : isRare   ? "url(#arrowhead-rare)"
-                               : "url(#arrowhead)";
-
-  const start = nodeEdgePoint(edge.from, edge.to);
-  const end   = nodeEdgePoint(edge.to,   edge.from);
-
-  // Perpendicular offset for parallel edges (same direction or bidirectional)
-  const hasReverse = EDGES.some(e => e.from === edge.to && e.to === edge.from);
-  const isParallel = edge.sameCount > 1;
-
-  let offset = { x: 0, y: 0 };
-  if (hasReverse || isParallel) {
-    const dx = end.x - start.x, dy = end.y - start.y;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const perp = { x: -dy / len, y: dx / len };
-    let shift;
-    if (isParallel) {
-      shift = (edge.sameIdx - (edge.sameCount - 1) / 2) * 9;
-    } else {
-      shift = 5;
-    }
-    offset = { x: perp.x * shift, y: perp.y * shift };
-  }
-
-  const attrs = {
-    stroke: strokeColor,
-    "stroke-width": strokeW,
-    fill: "none",
-    "marker-end": arrowMark,
-    opacity: "0.7",
-  };
-  if (isRare) attrs["stroke-dasharray"] = "5 3";
-
-  const x1 = start.x + offset.x, y1 = start.y + offset.y;
-  const x2 = end.x + offset.x,   y2 = end.y + offset.y;
-
-  const ddx = Math.abs(x2 - x1), ddy = Math.abs(y2 - y1);
-  let pathD;
-  if (ddx > 100 && ddy > 100) {
-    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-    pathD = `M ${x1} ${y1} Q ${mx} ${my - 20} ${x2} ${y2}`;
-  }
-
-  let el;
-  if (pathD) {
-    el = svgEl("path", { ...attrs, d: pathD });
-  } else {
-    el = svgEl("line", { ...attrs, x1, y1, x2, y2 });
-  }
-  layer.appendChild(el);
-
-  // Transparent hit-area + label click (only for labeled edges)
-  if (edge.label) {
-    const hitAttrs = {
-      stroke: "transparent",
-      "stroke-width": "12",
-      fill: "none",
-      cursor: "pointer",
-    };
-    let hit;
-    if (pathD) {
-      hit = svgEl("path", { ...hitAttrs, d: pathD });
-    } else {
-      hit = svgEl("line", { ...hitAttrs, x1, y1, x2, y2 });
-    }
-    hit.addEventListener("click", (e) => {
-      e.stopPropagation();
-      showEdgeTooltip(edge.label, e.clientX, e.clientY);
+    els.push({
+      group: "edges",
+      data: {
+        id: `e-${edge.from}-${edge.to}-${idx}`,
+        source: edge.from,
+        target: edge.to,
+        label: edge.label || "",
+      },
+      classes: edge.type,
     });
-    layer.appendChild(hit);
   }
+
+  return els;
 }
 
-function drawNode(layer, phase) {
-  const pos = NODE_POS[phase.id];
-  const colors = nodeColors(phase.color);
-  const isDecision = phase.color === "decision";
+function buildStyle() {
+  const muted   = cssVar("--text-muted");
+  const edgeRare = cssVar("--edge-rare");
 
-  const g = svgEl("g", {
-    id: `node-${phase.id}`,
-    class: "node-group",
-    "data-id": phase.id,
-  });
+  return [
+    // ── Nodes ──
+    {
+      selector: "node",
+      style: {
+        width: NW, height: NH,
+        shape: "round-rectangle",
+        "corner-radius": NRX,
+        "background-color": "data(fill)",
+        "border-color": "data(stroke)",
+        "border-width": 1.5,
+        label: "data(label)",
+        "text-valign": "center",
+        "text-halign": "center",
+        "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "font-size": "12px",
+        "font-weight": "600",
+        color: "data(textColor)",
+        "text-wrap": "wrap",
+        "text-max-width": NW - 16,
+        cursor: "pointer",
+        "transition-property": "opacity",
+        "transition-duration": "150ms",
+      }
+    },
+    {
+      selector: "node.decision",
+      style: {
+        "border-style": "dashed",
+        "border-width": 1,
+        "font-style": "italic",
+      }
+    },
+    {
+      selector: "node.dimmed",
+      style: { opacity: 0.3 }
+    },
 
-  const rectAttrs = {
-    class: "node-rect",
-    x: pos.x - NW / 2,
-    y: pos.y,
-    width: NW,
-    height: NH,
-    rx: NRX,
-    fill: colors.fill,
-    stroke: colors.stroke,
-    "stroke-width": isDecision ? "1" : "1.5",
-  };
-  if (isDecision) rectAttrs["stroke-dasharray"] = "5 3";
-  const rect = svgEl("rect", rectAttrs);
+    // ── Edges ──
+    {
+      selector: "edge",
+      style: {
+        "curve-style": "bezier",
+        "control-point-step-size": 30,
+        "target-arrow-shape": "triangle",
+        "target-arrow-fill": "filled",
+        "arrow-scale": 0.75,
+        "line-color": muted,
+        "target-arrow-color": muted,
+        width: 1,
+        opacity: 0.75,
+        "transition-property": "opacity",
+        "transition-duration": "150ms",
+      }
+    },
+    {
+      selector: "edge.rare",
+      style: {
+        "line-color": edgeRare,
+        "target-arrow-color": edgeRare,
+        "line-style": "dashed",
+        "line-dash-pattern": [5, 3],
+        width: 0.8,
+      }
+    },
+    {
+      selector: "edge.dangerous",
+      style: {
+        "line-color": "#A32D2D",
+        "target-arrow-color": "#A32D2D",
+        width: 1.5,
+      }
+    },
+    {
+      selector: "edge.dimmed",
+      style: { opacity: 0.12 }
+    },
 
-  const text = svgEl("text", {
-    class: "node-label",
-    x: pos.x,
-    y: pos.y + NH / 2,
-    fill: colors.text,
-    style: `font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;${isDecision ? " font-style: italic;" : ""}`,
-  });
-  text.textContent = phase.label;
-
-  g.appendChild(rect);
-  g.appendChild(text);
-  layer.appendChild(g);
-
-  g.addEventListener("click", () => handleNodeClick(phase.id));
+  ];
 }
 
-// ── Edge tooltip ─────────────────────────────────────────────────────────────
+function initCytoscape() {
+  cy = cytoscape({
+    container: document.getElementById("cy"),
+    elements: buildElements(),
+    style: buildStyle(),
+    layout: { name: "preset" },
+    userZoomingEnabled: false,
+    userPanningEnabled: false,
+    autoungrabify: true,
+  });
+
+  cy.fit(undefined, 20);
+
+  // Fit on resize
+  new ResizeObserver(() => { if (cy) cy.fit(undefined, 20); })
+    .observe(document.getElementById("cy"));
+
+  // Node click
+  cy.on("tap", "node", e => handleNodeClick(e.target.id()));
+
+  // Edge click — show label tooltip
+  cy.on("tap", "edge", e => {
+    const label = e.target.data("label");
+    if (!label) return;
+    e.stopPropagation();
+    const pos = e.renderedPosition;
+    const rect = document.getElementById("cy").getBoundingClientRect();
+    showEdgeTooltip(label, rect.left + pos.x, rect.top + pos.y);
+  });
+
+  // Background tap — deselect
+  cy.on("tap", e => {
+    if (e.target === cy) {
+      deselect();
+      hideEdgeTooltip();
+    }
+  });
+}
+
+// ── Edge tooltip ──────────────────────────────────────────────────────────────
 
 function showEdgeTooltip(label, clientX, clientY) {
   const tip = document.getElementById("edge-tooltip");
@@ -634,44 +595,41 @@ let activeNode = null;
 let pinnedNode = localStorage.getItem("pinnedNode") || null;
 
 function handleNodeClick(id) {
-  if (activeNode === id) {
-    deselect();
-    return;
-  }
+  if (activeNode === id) { deselect(); return; }
   select(id);
 }
 
 function select(id) {
   activeNode = id;
+  hideEdgeTooltip();
 
-  document.querySelectorAll(".node-group").forEach(g => {
-    const gid = g.dataset.id;
-    g.classList.remove("active", "dimmed");
-    if (gid === id) g.classList.add("active");
-    else g.classList.add("dimmed");
-  });
+  // Dim everything, then un-dim selected node + its edges
+  cy.elements().addClass("dimmed");
+  const node = cy.getElementById(id);
+  node.removeClass("dimmed");
+  node.connectedEdges().removeClass("dimmed");
 
   renderPanel(PHASES[id]);
   document.getElementById("detail-panel").classList.add("visible");
-  document.getElementById("pin-btn").style.display = "inline-block";
-  updatePinButton();
+
+  const isDecision = PHASES[id].color === "decision";
+  document.getElementById("pin-btn").style.display = isDecision ? "none" : "inline-block";
+  if (!isDecision) updatePinButton();
 }
 
 function deselect() {
   activeNode = null;
-  document.querySelectorAll(".node-group").forEach(g => {
-    g.classList.remove("active", "dimmed");
-  });
+  cy.elements().removeClass("dimmed");
   document.getElementById("detail-panel").classList.remove("visible");
   document.getElementById("pin-btn").style.display = "none";
 }
 
+// ── Panel rendering ───────────────────────────────────────────────────────────
+
 function renderPanel(phase) {
   const isDecision = phase.color === "decision";
   const allZero = Object.values(phase.axes).every(v => v === 0);
-  const colors = isDecision
-    ? { stroke: cssVar("--text-muted") }
-    : nodeColors(phase.color);
+  const colors = nodeColors(phase.color);
 
   const panel = document.getElementById("detail-panel");
 
@@ -682,27 +640,20 @@ function renderPanel(phase) {
 
   panel.querySelector(".panel-desc").textContent = phase.desc;
 
-  // Axes — hide for decision nodes and 0/0/0 states that aren't meaningful
+  // Axes — skip for decision nodes and phases where axes aren't meaningful
   const axesContainer = panel.querySelector(".panel-axes");
-  if (isDecision || (allZero && phase.id !== "crisis" && phase.id !== "decay")) {
+  if (isDecision || allZero) {
     axesContainer.innerHTML = "";
   } else {
     axesContainer.innerHTML = "";
-    const axisInfo = [
-      { key: "legitimacy",   label: "Legitimacy"   },
-      { key: "capacity",     label: "Capacity"     },
-      { key: "distribution", label: "Distribution" },
-    ];
-    for (const ax of axisInfo) {
-      const val = phase.axes[ax.key];
-      const pct = (val / 5) * 100;
+    for (const [key, label] of [["legitimacy","Legitimacy"],["capacity","Capacity"],["distribution","Distribution"]]) {
+      const val = phase.axes[key];
       const row = document.createElement("div");
       row.className = "axis-row";
       row.innerHTML = `
-        <span class="axis-label">${ax.label}</span>
-        <div class="axis-track">
-          <div class="axis-fill" style="width:${pct}%; background:${colors.stroke};"></div>
-        </div>
+        <span class="axis-label">${label}</span>
+        <button class="axis-info-btn" data-axis="${key}" aria-label="About ${label}">?</button>
+        <div class="axis-track"><div class="axis-fill" style="width:${val/5*100}%;background:${colors.stroke};"></div></div>
         <span class="axis-value">${val}/5</span>
       `;
       axesContainer.appendChild(row);
@@ -727,7 +678,6 @@ function renderPanel(phase) {
   });
 
   panel.querySelector(".loop-text").textContent = phase.loop;
-
   panel.querySelector(".examples-list").innerHTML =
     phase.examples.map(e => `<li>${e}</li>`).join("");
 }
@@ -737,17 +687,12 @@ function renderPanel(phase) {
 function updatePinButton() {
   const btn = document.getElementById("pin-btn");
   if (!activeNode) return;
-  const phase = PHASES[activeNode];
-  const isDecision = phase.color === "decision";
-  if (isDecision) {
-    btn.style.display = "none";
-    return;
-  }
+  const colors = nodeColors(PHASES[activeNode].color);
   if (pinnedNode === activeNode) {
     btn.textContent = "Pinned: You are here";
     btn.classList.add("pinned");
-    btn.style.color = nodeColors(phase.color).stroke;
-    btn.style.borderColor = nodeColors(phase.color).stroke;
+    btn.style.color = colors.stroke;
+    btn.style.borderColor = colors.stroke;
   } else {
     btn.textContent = "Mark as: We are here";
     btn.classList.remove("pinned");
@@ -758,36 +703,27 @@ function updatePinButton() {
 }
 
 function renderPinRing() {
-  document.querySelectorAll(".pin-ring").forEach(el => el.remove());
+  if (!cy) return;
+  // Clear all outlines
+  cy.nodes().forEach(n => n.style({ "outline-width": 0 }));
   if (!pinnedNode) return;
-  const pos = NODE_POS[pinnedNode];
-  const colors = nodeColors(PHASES[pinnedNode].color);
-  const ring = svgEl("rect", {
-    class: "pin-ring",
-    x: pos.x - NW / 2 - 4,
-    y: pos.y - 4,
-    width: NW + 8,
-    height: NH + 8,
-    rx: NRX + 3,
-    fill: "none",
-    stroke: colors.stroke,
-    "stroke-width": "2.5",
-    "stroke-dasharray": "6 3",
-    opacity: "0.8",
-    "pointer-events": "none",
+  const node = cy.getElementById(pinnedNode);
+  if (!node.length) return;
+  const stroke = nodeColors(PHASES[pinnedNode].color).stroke;
+  node.style({
+    "outline-width": 3,
+    "outline-color": stroke,
+    "outline-offset": 5,
+    "outline-style": "dashed",
+    "outline-opacity": 0.85,
   });
-  document.getElementById("nodes").appendChild(ring);
 }
 
 document.getElementById("pin-btn").addEventListener("click", () => {
   if (!activeNode) return;
-  if (pinnedNode === activeNode) {
-    pinnedNode = null;
-    localStorage.removeItem("pinnedNode");
-  } else {
-    pinnedNode = activeNode;
-    localStorage.setItem("pinnedNode", pinnedNode);
-  }
+  pinnedNode = pinnedNode === activeNode ? null : activeNode;
+  if (pinnedNode) localStorage.setItem("pinnedNode", pinnedNode);
+  else localStorage.removeItem("pinnedNode");
   updatePinButton();
 });
 
@@ -805,21 +741,80 @@ function buildLegend() {
     { key: "decision", label: "Branching question" },
   ];
   container.innerHTML = entries.map(c => {
-    const stroke = cssVar(`--${c.key === "decision" ? "text-muted" : c.key + "-stroke"}`);
-    const dash = c.key === "decision"
+    const stroke = cssVar(c.key === "decision" ? "--text-muted" : `--${c.key}-stroke`);
+    const dotStyle = c.key === "decision"
       ? `border: 1px dashed ${stroke}; background: transparent;`
       : `background: ${stroke};`;
     return `<div class="legend-item">
-      <span class="legend-dot" style="${dash}"></span>
+      <span class="legend-dot" style="${dotStyle}"></span>
       <span>${c.label}</span>
     </div>`;
   }).join("");
 }
 
+// ── Axis info modal ───────────────────────────────────────────────────────────
+
+const AXIS_INFO = {
+  legitimacy: {
+    title: "Legitimacy",
+    body: `<p>Legitimacy has the deepest theoretical pedigree of the three axes. Max Weber's three types — traditional, charismatic, and rational-legal — are the foundation of almost all subsequent work. The core idea, that durable power requires voluntary compliance and not just coercion, is as close to consensus as political science gets. Seymour Martin Lipset formalized it empirically in the 1950s–60s.</p>
+<p>A government can hold power through fear alone, but coercion is expensive and brittle. Legitimacy is what converts raw power into authority — the population's acceptance that the regime has a <em>right</em> to rule, not merely the capacity to enforce.</p>
+<p><strong>Scale (0–5):</strong> 0 = pure coercion, no voluntary compliance; 5 = broad, cross-factional acceptance of the regime's right to rule.</p>`
+  },
+  capacity: {
+    title: "Capacity",
+    body: `<p>Capacity comes primarily from the state-building literature — Charles Tilly's war-makes-states thesis, Francis Fukuyama's work on political order, and the "failed states" research that expanded after the Cold War (Robert Rotberg and others). The basic insight: legitimacy without capacity is an empty shell. A government can be beloved and still unable to deliver security, collect taxes, or enforce contracts.</p>
+<p>There is ongoing debate about whether capacity is one thing or several. Coercive capacity (monopoly on violence), administrative capacity (bureaucratic reach), and fiscal capacity (ability to tax and spend) are meaningfully different and don't always move together.</p>
+<p><strong>Scale (0–5):</strong> 0 = state cannot execute basic functions; 5 = high administrative, fiscal, and coercive capacity operating in tandem.</p>`
+  },
+  distribution: {
+    title: "Distribution",
+    body: `<p>Distribution is the most contested axis. It draws from several traditions that don't fully agree: Mancur Olson's logic of collective action, Acemoglu and Robinson's framework of inclusive vs. extractive institutions (<em>Why Nations Fail</em>), and older structural traditions about who the state ultimately serves.</p>
+<p>The empirical record supports the basic claim that highly extractive regimes are less stable long-term, but causal mechanisms are disputed. The concept is also genuinely ambiguous — distribution of <em>what</em>? Wealth? Public services? Political voice? Rights? These don't always move together, and different theoretical traditions weight them differently.</p>
+<p><strong>Scale (0–5):</strong> 0 = highly extractive, benefits concentrated in a small elite; 5 = broadly shared benefits across social groups.</p>`
+  }
+};
+
+(function initAxisModal() {
+  const modal    = document.getElementById("axis-modal");
+  const backdrop = document.getElementById("axis-modal-backdrop");
+  const closeBtn = document.getElementById("axis-modal-close");
+  const titleEl  = document.getElementById("axis-modal-title");
+  const bodyEl   = document.getElementById("axis-modal-body");
+
+  function openModal(axis) {
+    const info = AXIS_INFO[axis];
+    if (!info) return;
+    titleEl.textContent = info.title;
+    bodyEl.innerHTML = info.body;
+    modal.classList.add("visible");
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("visible");
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+  backdrop.addEventListener("click", closeModal);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.classList.contains("visible")) closeModal();
+  });
+
+  // Event delegation — buttons are created dynamically inside the panel
+  document.getElementById("detail-panel").addEventListener("click", e => {
+    const btn = e.target.closest(".axis-info-btn");
+    if (btn) {
+      e.stopPropagation();
+      openModal(btn.dataset.axis);
+    }
+  });
+})();
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
-  buildSVG();
+  initCytoscape();
   buildLegend();
   if (pinnedNode) renderPinRing();
 });
