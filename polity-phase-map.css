@@ -1,0 +1,440 @@
+:root {
+  --purple-fill: #EEEDFE; --purple-stroke: #534AB7; --purple-text: #26215C;
+  --teal-fill:   #E1F5EE; --teal-stroke:   #0F6E56; --teal-text:   #04342C;
+  --blue-fill:   #E6F1FB; --blue-stroke:   #185FA5; --blue-text:   #042C53;
+  --amber-fill:  #FAEEDA; --amber-stroke:  #BA7517; --amber-text:  #412402;
+  --green-fill:  #EAF3DE; --green-stroke:  #3B6D11; --green-text:  #173404;
+  --red-fill:    #FCEBEB; --red-stroke:    #A32D2D; --red-text:    #501313;
+
+  --bg:          #ffffff;
+  --bg-secondary:#f6f5f1;
+  --text:        #1a1a18;
+  --text-muted:  #6b6a65;
+  --border:      rgba(0,0,0,0.12);
+
+  --branch-positive-bg: #EAF3DE; --branch-positive-text: #173404; --branch-positive-border: #3B6D11;
+  --branch-warning-bg:  #FAEEDA; --branch-warning-text:  #412402; --branch-warning-border:  #BA7517;
+  --branch-danger-bg:   #FCEBEB; --branch-danger-text:   #501313; --branch-danger-border:   #A32D2D;
+  --branch-info-bg:     #E6F1FB; --branch-info-text:     #042C53; --branch-info-border:     #185FA5;
+
+  --edge-rare: #5C7FA8;
+
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1c; --bg-secondary: #2a2a28;
+    --text: #e8e6de; --text-muted: #9c9a92; --border: rgba(255,255,255,0.12);
+    --purple-fill: #3C3489; --purple-stroke: #AFA9EC; --purple-text: #CECBF6;
+    --teal-fill:   #085041; --teal-stroke:   #5DCAA5; --teal-text:   #9FE1CB;
+    --blue-fill:   #0C447C; --blue-stroke:   #85B7EB; --blue-text:   #B5D4F4;
+    --amber-fill:  #633806; --amber-stroke:  #EF9F27; --amber-text:  #FAC775;
+    --green-fill:  #27500A; --green-stroke:  #97C459; --green-text:  #C0DD97;
+    --red-fill:    #791F1F; --red-stroke:    #F09595; --red-text:    #F7C1C1;
+
+    --branch-positive-bg: #27500A; --branch-positive-text: #C0DD97; --branch-positive-border: #97C459;
+    --branch-warning-bg:  #633806; --branch-warning-text:  #FAC775; --branch-warning-border:  #EF9F27;
+    --branch-danger-bg:   #791F1F; --branch-danger-text:   #F7C1C1; --branch-danger-border:   #F09595;
+    --branch-info-bg:     #0C447C; --branch-info-text:     #B5D4F4; --branch-info-border:     #85B7EB;
+
+    --edge-rare: #89AECE;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Page layout ── */
+#app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+header p {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Legend ── */
+#legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* ── SVG map ── */
+#map-wrap {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+#map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* SVG node styles */
+.node-rect {
+  cursor: pointer;
+  transition: filter 0.15s, opacity 0.2s;
+}
+
+.node-rect:hover {
+  filter: brightness(0.92);
+}
+
+.node-group {
+  transition: opacity 0.2s;
+}
+
+.node-group.dimmed {
+  opacity: 0.35;
+}
+
+.node-group.active .node-rect {
+  /* ring added via JS stroke-width */
+}
+
+.node-label {
+  pointer-events: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* ── Detail panel ── */
+#detail-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: none;
+}
+
+#detail-panel.visible {
+  display: block;
+}
+
+.panel-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-phase-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.panel-desc {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.panel-axes {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.axis-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.axis-label {
+  width: 82px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.axis-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.axis-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.axis-value {
+  width: 20px;
+  text-align: right;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Panel body grid ── */
+.panel-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.panel-cell {
+  padding: 14px 20px;
+  font-size: 0.8125rem;
+}
+
+.panel-cell + .panel-cell {
+  border-left: 1px solid var(--border);
+}
+
+.panel-cell:nth-child(3),
+.panel-cell:nth-child(4) {
+  border-top: 1px solid var(--border);
+}
+
+.panel-cell:nth-child(4) {
+  border-left: 1px solid var(--border);
+}
+
+.cell-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Markers list */
+.markers-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.markers-list li {
+  padding-left: 12px;
+  position: relative;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.markers-list li::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+/* Branch badges */
+.branches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.branch-badge {
+  display: inline-flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border-left: 3px solid;
+  font-size: 0.75rem;
+}
+
+.branch-badge.positive {
+  background: var(--branch-positive-bg);
+  color: var(--branch-positive-text);
+  border-color: var(--branch-positive-border);
+}
+.branch-badge.warning {
+  background: var(--branch-warning-bg);
+  color: var(--branch-warning-text);
+  border-color: var(--branch-warning-border);
+}
+.branch-badge.danger {
+  background: var(--branch-danger-bg);
+  color: var(--branch-danger-text);
+  border-color: var(--branch-danger-border);
+}
+.branch-badge.info {
+  background: var(--branch-info-bg);
+  color: var(--branch-info-text);
+  border-color: var(--branch-info-border);
+}
+
+.branch-badge.has-target {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.branch-badge.has-target:hover {
+  filter: brightness(0.93);
+}
+
+.branch-badge.has-target .branch-name::after {
+  content: " →";
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+/* Edge label tooltip */
+#edge-tooltip {
+  display: none;
+  position: fixed;
+  pointer-events: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  z-index: 10;
+  transform: translate(-50%, -130%);
+}
+
+.branch-name {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.branch-desc {
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* Loop & examples */
+.loop-text {
+  color: var(--text);
+  line-height: 1.55;
+  font-size: 0.8125rem;
+}
+
+.examples-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.examples-list li {
+  padding-left: 12px;
+  position: relative;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.examples-list li::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+/* ── "You are here" button ── */
+#pin-btn {
+  display: none;
+  margin-top: 10px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-family: var(--font);
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+#pin-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+#pin-btn.pinned {
+  border-color: currentColor;
+}
+
+/* ── Edge legend ── */
+#edge-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.edge-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edge-line {
+  width: 28px;
+  height: 2px;
+  flex-shrink: 0;
+}
+
+.edge-line.normal   { background: var(--text-muted); }
+.edge-line.rare     { background-image: repeating-linear-gradient(90deg, var(--edge-rare) 0 5px, transparent 5px 8px); }
+.edge-line.dangerous{ background: #A32D2D; }

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polity Phase Map</title>
+  <link rel="stylesheet" href="polity-phase-map.css">
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1>Polity Phase Map</h1>
+    <p>Click a node to inspect its diagnostic markers, branching options, and historical examples.</p>
+  </header>
+
+  <!--<div id="legend"></div>-->
+
+  <div id="map-wrap">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div id="edge-legend">
+    <div class="edge-legend-item">
+      <div class="edge-line normal"></div>
+      <span>Normal transition</span>
+    </div>
+    <div class="edge-legend-item">
+      <div class="edge-line rare"></div>
+      <span>Rare transition</span>
+    </div>
+    <div class="edge-legend-item">
+      <div class="edge-line dangerous"></div>
+      <span>Dangerous transition</span>
+    </div>
+  </div>
+
+  <button id="pin-btn" style="display:none;">Mark as: We are here</button>
+
+  <div id="detail-panel">
+    <div class="panel-header">
+      <div class="panel-phase-name"></div>
+      <p class="panel-desc"></p>
+      <div class="panel-axes"></div>
+    </div>
+    <div class="panel-body">
+      <div class="panel-cell">
+        <div class="cell-title">Diagnostic markers</div>
+        <ul class="markers-list"></ul>
+      </div>
+      <div class="panel-cell">
+        <div class="cell-title">Branching options</div>
+        <div class="branches-list"></div>
+      </div>
+      <div class="panel-cell">
+        <div class="cell-title">Key feedback loop</div>
+        <p class="loop-text"></p>
+      </div>
+      <div class="panel-cell">
+        <div class="cell-title">Historical examples</div>
+        <ul class="examples-list"></ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="edge-tooltip"></div>
+<script src="polity-phase-map.js"></script>
+</body>
+</html>
