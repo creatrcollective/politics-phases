@@ -8,7 +8,17 @@
   <script src="https://unpkg.com/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
 </head>
 <body>
-<div id="app">
+
+<!-- Intro screen -->
+<div id="intro">
+  <div id="intro-box">
+    <h1 id="intro-title">Polity Phase Graph</h1>
+    <p id="intro-desc">Polity Phase Graph is an interactive political analysis framework built as a standalone JavaScript application. Moving beyond linear "cycle of democracy" models like Tytler's, it maps political development as a directed graph of ten attractor states, spanning Formation through Mature Stability, Autocratic Consolidation, Reform, Repression, and Terminal Decay. Includes explicit branching decision points, feedback loops, and historical examples at each node. Each phase is characterized along three axes (legitimacy, capacity, and distribution), drawn from Weber, Tilly, Fukuyama, and Acemoglu/Robinson, with the framework designed to surface the divergence between these axes (particularly the decoupling of coercive from administrative capacity in pathological phases) as a signal in itself. The tool is intended for various types of analysis: a polity, organization, society, or movement can locate itself on the map, investigate its branching options, and understand the feedback loops that are either stabilizing or destabilizing its current position.</p>
+    <button id="intro-start">Try Polity Graph</button>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
 
   <header>
     <h1>Polity Phase Map</h1>

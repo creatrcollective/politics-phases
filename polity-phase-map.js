@@ -25,7 +25,9 @@ const PHASES = {
       "Weimar Germany (1919) → democratic formation under extreme strain",
       "Soviet formation (1917–22) → strongman path",
       "India (1947) → federal path under partition pressure"
-    ]
+    ],
+    theory: "The moment a new political entity comes into existence. Happens through revolution, independence, secession, or the collapse of a predecessor. Legitimacy is entirely projected, grounded in promises and founding myths rather than performance. The central variable is whether any faction achieves sufficient dominance to set terms unilaterally, or whether rough parity among rivals forces negotiated constraint. Whatever rules get written at this moment encode assumptions about who counts as a legitimate political actor, and those assumptions prove extraordinarily sticky.",
+    citation: "Acemoglu, D., & Robinson, J. A. (2012). Why nations fail: The origins of power, prosperity, and poverty. Crown Business."
   },
 
   settlement: {
@@ -103,7 +105,9 @@ const PHASES = {
       "Post-WWII South Korea (1950s–60s) → developmental state",
       "ANC South Africa (1994–2008) → managed transition",
       "Turkey under Atatürk (1923–38)"
-    ]
+    ],
+    theory: "The founding coalition has prevailed; now it must build institutions capable of outlasting the founders. Courts, bureaucracies, tax systems, and norms of succession need to replace personal loyalty networks. The critical diagnostic question is whether the dominant faction builds impersonal institutions — rules that bind even themselves — or personal ones centered on the founding leader. Linz and Stepan's formulation remains the sharpest: democracy is consolidated when it becomes \"the only game in town\" — behaviorally, attitudinally, and constitutionally. The danger of this phase is confusing the faction with the state.",
+    citation: "Linz, J. J., & Stepan, A. (1996). Problems of democratic transition and consolidation: Southern Europe, South America, and post-communist Europe. Johns Hopkins University Press."
   },
 
   mature: {
@@ -130,7 +134,9 @@ const PHASES = {
       "United States (1945–73)",
       "Botswana (1966–present) — African outlier",
       "Costa Rica (1949–present)"
-    ]
+    ],
+    theory: "Institutions have demonstrated they can survive stress. Power transfers peacefully over generations. Citizens have internalized the legitimacy of the regime, and even the opposition is loyal: it loses elections rather than revolting. This phase is what most political theory assumes but few entities sustain for long. Fukuyama's critical insight is that mature stability contains its own decay mechanism: successful institutions breed complacency, elites begin treating institutions as resources to capture rather than frameworks to maintain, and what he calls \"repatrimonialization\" — the return of personalized, patronage-based politics — sets in from within.",
+    citation: "Fukuyama, F. (2014). Political order and political decay: From the industrial revolution to the globalization of democracy. Farrar, Straus and Giroux."
   },
 
   autocratic: {
@@ -155,9 +161,12 @@ const PHASES = {
     examples: [
       "Russia under Putin (2000–present)",
       "Hungary under Orbán (2010–present)",
-      "Venezuela under Maduro (2013–present)",
+      "Venezuela (2013–present)",
+      "Turkey under Erdogan (2014-present)",
       "Singapore (1965–90) — high-capacity variant"
-    ]
+    ],
+    theory: "A single actor or small group has eliminated rival power centers. The state apparatus is personalized — institutions exist but serve the ruler rather than the rule. Svolik identifies the two fundamental problems all autocracies must navigate: authoritarian control (managing threats from the population) and authoritarian power-sharing (managing threats from the elite coalition). Because no independent authority can enforce agreements, violence is the ever-present final arbiter. This phase can be surprisingly stable, but stability is purchased at the cost of adaptability: information reaching the leadership is systematically distorted, succession is existentially dangerous, and problem-solving capacity degrades while coercive capacity remains high.",
+    citation: "Svolik, M. W. (2012). The politics of authoritarian rule. Cambridge University Press."
   },
 
   strain: {
@@ -184,7 +193,9 @@ const PHASES = {
       "France under Louis XVI (1787–89)",
       "Soviet Union (1985–91)",
       "United States (2016–present, contested)"
-    ]
+    ],
+    theory: "The polity's costs are outrunning its capacity to sustain them — military overextension, fiscal crisis, elite fracture, demographic pressure, or accumulated legitimacy deficits. This is the most diagnostically important phase because nearly every polity passes through it; what matters is whether institutions are robust enough to redirect the trajectory without rupture. The strain phase is self-amplifying: fiscal stress forces service cuts, which erode legitimacy, which increases dissent, which requires more coercive spending, which deepens fiscal stress. Goldstone's structural model identifies the three simultaneous conditions that tip strain into crisis: state revenue crisis, elite fragmentation, and a mobilizable popular base — each necessary, none sufficient alone.",
+    citation: "Goldstone, J. A. (1991). Revolution and rebellion in the early modern world. University of California Press."
   },
 
   reform: {
@@ -210,7 +221,9 @@ const PHASES = {
       "South Africa transition (1990–94)",
       "Spain's Transition (1975–82)",
       "Britain's Reform Acts (1832, 1867)"
-    ]
+    ],
+    theory: "Institutions bend without breaking. The polity absorbs a shock (economic, demographic, military, or legitimacy-based) and emerges with new rules, new coalitions, or redistributed power. This is the rarest and most undertheorized path, and it requires two simultaneous conditions that are difficult to achieve together: elite willingness to bear short-term losses, and credible popular pressure sufficient to make reform necessary. Hirschman's framework explains the mechanism: when exit is unavailable or costly, voice becomes the rational strategy — reform happens precisely when the credible alternative is something worse. Without that threat, elites have no incentive to absorb reform costs.",
+    citation: "Hirschman, A. O. (1970). Exit, voice, and loyalty: Responses to decline in firms, organizations, and states. Harvard University Press."
   },
 
   repression: {
@@ -237,7 +250,9 @@ const PHASES = {
       "East Germany (1950–89)",
       "North Korea (1990–present)",
       "Zimbabwe under Mugabe (2000–17)"
-    ]
+    ],
+    theory: "The regime responds to strain by tightening rather than adapting. Institutions calcify around the ruling coalition. The system becomes brittle: coercive capacity remains high while problem-solving and adaptive capacity collapses. Levitsky and Ziblatt document the mechanism in democratic contexts — the erosion of mutual toleration and institutional forbearance — but the same dynamic operates in autocracies with greater finality: once the reform faction is eliminated, only external shock or elite defection can produce change. The characteristic marker is that information reaching leadership is systematically falsified, not merely filtered.",
+    citation: "Levitsky, S., & Ziblatt, D. (2018). How democracies die. Crown Publishing."
   },
 
   crisis: {
@@ -262,7 +277,9 @@ const PHASES = {
       "Libya (2011–present)",
       "Lebanon (2019–present)",
       "Democratic Republic of Congo (1996–2003)"
-    ]
+    ],
+    theory: "Legitimacy and capacity have failed simultaneously and publicly. The polity cannot perform its basic functions (security, law, taxation) and significant factions no longer recognize its authority. Critically, this phase does not represent zero on all axes: legitimacy does not disappear, it fragments across rival claimants; coercive capacity often persists in localized form long after administrative capacity has collapsed; and distribution sometimes increases as the collapsing regime throws resources at constituencies to buy loyalty. The diagnostic signal is not low scores but axis dissociation: the normal co-movement of legitimacy and capacity breaks down.",
+    citation: "Goldstone, J. A. (1991). Revolution and rebellion in the early modern world. University of California Press."
   },
 
   succession: {
@@ -288,7 +305,9 @@ const PHASES = {
       "UK general elections",
       "Taiwan's democratic consolidation (1996–present)",
       "Mexico's PRI-to-PAN transition (2000)"
-    ]
+    ],
+    theory: "Power transfers peacefully according to established rules — elections, constitutional succession, term limits. This is simultaneously the signature achievement of a mature democratic system and the most critical moment of institutional reproduction. Each successful peaceful transfer makes the next one more likely by solidifying the norm. Each failed transfer makes future disputes more probable. The United States' 1800 election — the first democratic transfer of power between rival parties in history — is the paradigm case. Przeworski's formulation captures the mechanism precisely: democracy is a system for processing political conflict without violence, and succession is the moment that claim is tested.",
+    citation: "Przeworski, A. (1991). Democracy and the market: Political and economic reforms in Eastern Europe and Latin America. Cambridge University Press."
   },
 
   decay: {
@@ -313,7 +332,9 @@ const PHASES = {
       "Yemen (2015–present)",
       "Afghanistan under Taliban (2021–present)",
       "Late Western Roman Empire (395–476 CE)"
-    ]
+    ],
+    theory: "The polity has lost the capacity to reconstitute itself from within. Reached through prolonged repression that eliminated reform factions, combined with economic or military failure, terminal decay is distinguished from crisis by the absence of any viable internal reform coalition. Tainter's core mechanism — diminishing marginal returns on administrative complexity — explains the terminal character: each new layer of bureaucracy added to solve a problem reduces the net benefit of complexity, until the system reaches a point where simplification (collapse, partition, absorption) is actually the rational adaptive response for most actors. Collapse in this frame is not failure but adaptation.",
+    citation: "Tainter, J. A. (1988). The collapse of complex societies. Cambridge University Press."
   }
 };
 
@@ -634,9 +655,20 @@ function renderPanel(phase) {
   const panel = document.getElementById("detail-panel");
 
   const nameEl = panel.querySelector(".panel-phase-name");
-  nameEl.textContent = phase.label;
-  nameEl.style.color = colors.stroke;
-  nameEl.style.fontStyle = isDecision ? "italic" : "";
+  nameEl.innerHTML = "";
+  const nameTxt = document.createElement("span");
+  nameTxt.textContent = phase.label;
+  nameTxt.style.color = colors.stroke;
+  nameTxt.style.fontStyle = isDecision ? "italic" : "";
+  nameEl.appendChild(nameTxt);
+  if (phase.theory) {
+    const btn = document.createElement("button");
+    btn.className = "axis-info-btn";
+    btn.setAttribute("aria-label", `Theory: ${phase.label}`);
+    btn.textContent = "?";
+    btn.addEventListener("click", () => openAxisModal(phase.label, phase.theory, phase.citation));
+    nameEl.appendChild(btn);
+  }
 
   panel.querySelector(".panel-desc").textContent = phase.desc;
 
@@ -791,6 +823,15 @@ const AXIS_INFO = {
     closeBtn.focus();
   }
 
+  // Exposed for phase theory popups (called directly from renderPanel)
+  window.openAxisModal = function(title, body, citation) {
+    titleEl.textContent = title;
+    bodyEl.innerHTML = `<p>${body}</p>` +
+      (citation ? `<p class="modal-citation">${citation}</p>` : "");
+    modal.classList.add("visible");
+    closeBtn.focus();
+  };
+
   function closeModal() {
     modal.classList.remove("visible");
   }
@@ -801,9 +842,9 @@ const AXIS_INFO = {
     if (e.key === "Escape" && modal.classList.contains("visible")) closeModal();
   });
 
-  // Event delegation — buttons are created dynamically inside the panel
+  // Event delegation — axis buttons inside the panel
   document.getElementById("detail-panel").addEventListener("click", e => {
-    const btn = e.target.closest(".axis-info-btn");
+    const btn = e.target.closest(".axis-info-btn[data-axis]");
     if (btn) {
       e.stopPropagation();
       openModal(btn.dataset.axis);
@@ -811,10 +852,18 @@ const AXIS_INFO = {
   });
 })();
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Intro → App transition ────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
-  initCytoscape();
-  buildLegend();
-  if (pinnedNode) renderPinRing();
+  const intro = document.getElementById("intro");
+  const app   = document.getElementById("app");
+
+  document.getElementById("intro-start").addEventListener("click", () => {
+    intro.style.display = "none";
+    app.style.display   = "block";
+    // Initialise Cytoscape now that the container is visible and has dimensions
+    initCytoscape();
+    buildLegend();
+    if (pinnedNode) renderPinRing();
+  });
 });
